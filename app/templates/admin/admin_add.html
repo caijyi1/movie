@@ -58,13 +58,12 @@
                             {% endfor %}
                         </div>
                         <div class="form-group">
-                            <label for="input_role_id">{{ form.role_id.label }}</label>
-                                {{ form.role_id }}
-                                {% for err in form.name.errors %}
-                                <div class="col-md-12">
-                                    <font style="color: red">{{ err }}</font>    
-                                </div>
+                            <label for="input_role_id">所属角色</label>
+                                <select class="form-control" id="role_id" name="role_id">
+                                {% for v in roles %}
+                                <option value="{{ v.id }}">{{ v.name }}</option>
                                 {% endfor %}
+                                </select>
                         </div>
                     </div>
                     <div class="box-footer">

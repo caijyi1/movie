@@ -17,7 +17,7 @@ def tpl_extra():
 		)
 	return data
 
-# oplog日志记录
+# 管理员操作日志记录
 def oplog_handle(reason):
 	oplog = Oplog(
 		admin_id = session["admin_id"],
@@ -40,17 +40,19 @@ def adminlogin_required(f):
 def admin_auth(f):
 	@wraps(f)
 	def decorated_function(*args,**kw):
+		# 根据用户id获取角色，根据角色获取可以访问的权限列表
 		admin = Admin.query.join(
 			Role).filter(
 			Role.id == Admin.role_id,
 			Admin.id == session["admin_id"]
 			).first()
+
 		auths = admin.role.auths
 		auths = list(map(lambda v: int(v), auths.split(",")))
-		auth_list = Auth.query.all()
-		urls = [v.url for v in auth_list for val in auths if val == v.id]
-		rule = str(request.url_rule)
-		if rule not in urls and admin.is_super != 0:
+		auth_list = Auth.query.all() 		
+		urls = [v.url for v in auth_list for val in auths if val == v.id] # ['/admin/tag/add/', '/admin/tag/edit/<int:id>/', '/admin/tag/list/<int:page>/', '/admin/tag/del/<int:id>/'] 
+		rule = str(request.url_rule) #	/admin/preview/add/
+		if rule not in urls and admin.is_super != 1:
 			abort(404)
 		return f(*args, **kw)
 	return decorated_function
@@ -594,6 +596,7 @@ def auth_edit(id=None):
 @admin.route("/role/add/", methods=["GET","POST"])
 @adminlogin_required
 def role_add():
+	auth_list = Auth.query.all()
 	form = RoleForm()
 	if form.validate_on_submit():
 		data = form.data
@@ -602,16 +605,18 @@ def role_add():
 			return redirect(url_for("admin.role_add"))
 
 		# 插入role新记录
+		print(request.values.get("auths"))
 		role = Role(
 			name = data["name"],
-			auths = ",".join(map(lambda v: str(v), data["auths"]))
+			auths = ",".join(map(lambda v: str(v), request.values.getlist("auths")))
 			)
 		db.session.add(role)
 		db.session.commit()
 		flash("添加角色成功！", "ok")
 		recod = "添加角色-%s" % (data["name"])
 		oplog_handle(recod)
-	return render_template("admin/role_add.html", form=form)
+
+	return render_template("admin/role_add.html", form=form, auth_list=auth_list)
 
 # 角色列表
 @admin.route("/role/list/<int:page>", methods=["GET"])
@@ -628,10 +633,12 @@ def role_list(page):
 @adminlogin_required
 @admin_auth
 def role_edit(id=None):
+
 	form = RoleForm()
 	role = Role.query.get_or_404(int(id))
-	if request.method == "GET":
-		form.auths.data = list(map(lambda v:int(v) ,role.auths.split(",")))
+	auth_list = Auth.query.all()
+	auth_id = list(map(lambda v:int(v) ,role.auths.split(",")))
+ 	
 	if form.validate_on_submit():
 		data = form.data
 		name_count = Role.query.filter_by(name=data["name"]).count()
@@ -641,13 +648,14 @@ def role_edit(id=None):
 
 		# update role 表
 		role.name = data["name"]
-		role.auths = ",".join(map(lambda v: str(v), data["auths"]))
+		role.auths = ",".join(map(lambda v: str(v), request.values.getlist("auths")))
 		db.session.commit()
 
 		flash("修改权限成功！", "ok")
 		recod = "修改权限ID-%d" % (id)
 		oplog_handle(recod)
-	return render_template("admin/role_edit.html",form=form, role=role)
+
+	return render_template("admin/role_edit.html", form=form,role=role, auth_list=auth_list, auth_id=auth_id)
 
 # 删除角色
 @admin.route("/role/del/<int:id>/", methods=["GET"])
@@ -667,6 +675,7 @@ def role_del(id=None):
 @admin_auth
 def admin_add():
 	form = AdminForm()
+	roles = Role.query.all()
 	from werkzeug.security import generate_password_hash
 	if form.validate_on_submit():
 		data = form.data
@@ -677,13 +686,13 @@ def admin_add():
 		admin = Admin(
 			name = data["name"],
 			pwd = generate_password_hash(data["pwd"]),
-			role_id = data["role_id"],
-			is_super = 1	
+			role_id = request.values.get("role_id"),
+			is_super = 0
 			)
 		db.session.add(admin)
 		db.session.commit()
 		flash("添加管理员成功", "ok")
-	return render_template("admin/admin_add.html", form=form)
+	return render_template("admin/admin_add.html", form=form,roles=roles)
 
 @admin.route("/admin/list/<int:page>/", methods=["GET"])
 @adminlogin_required

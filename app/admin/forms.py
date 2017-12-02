@@ -230,7 +230,7 @@ class AuthForm(FlaskForm):
 		)
 
 class RoleForm(FlaskForm):
-	auth_list = Auth.query.all()
+	
 	name = StringField(
 		label = "角色名称",
 		validators = [ DataRequired("请输入角色名称！")],
@@ -241,16 +241,7 @@ class RoleForm(FlaskForm):
 			"required": "required"
 		}
 		)
-	auths = SelectMultipleField(
-		label = "权限列表",
-		validators = [ DataRequired("请输入权限列表！")],
-		coerce = int,
-		choices = [(v.id,v.name) for v in auth_list],
-		description = "权限列表",
-		render_kw = {
-			"class": "form-control"
-		}
-		)
+
 	submit = SubmitField(
 		"提交",
 		render_kw = {
@@ -281,7 +272,7 @@ class AdminForm(FlaskForm):
 		}
 		)
 	repwd = PasswordField(
-		label = "管理员重复怒密码",
+		label = "管理员重复密码",
 		validators = [ DataRequired("请重复输入管理员密码！"),
 			EqualTo('pwd', message = u'密码输入不一致！')],
 		description = "管理员重复密码",
@@ -290,14 +281,7 @@ class AdminForm(FlaskForm):
 			"placeholder": "请重复输入管理员密码！"
 		}
 		)
-	role_id = SelectField(
-		label = "所属角色",
-		coerce = int,
-		choices = [(v.id,v.name) for v in role_list],
-		render_kw = {
-			"class": "form-control",
-		}
-		)
+
 	submit = SubmitField(
 		"提交",
 		render_kw = {

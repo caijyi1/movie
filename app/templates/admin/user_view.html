@@ -47,7 +47,9 @@
                         <tr>
                             <td class="td_bd">头像：</td>
                             <td>
+                                {% if user.face %}
                                 <img src="{{ url_for('static',filename='video/users/'+user.face) }}" style="width: 100px;" class="img-responsive" alt="">
+                                {% endif %}
                             </td>
                         </tr>
                         <tr>

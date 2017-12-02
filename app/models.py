@@ -23,7 +23,10 @@ class User(db.Model):
 	KEY `ix_user_addtime` (`addtime`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 """
 
-	__tablename__ = "user" #表名
+	__table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4'
+    }
 	id = db.Column(db.Integer, primary_key=True) #编号
 	name = db.Column(db.String(100), unique=True) #昵称
 	pwd = db.Column(db.String(100)) #密码
@@ -194,8 +197,11 @@ class Auth(db.Model):
 	UNIQUE KEY `name` (`name`),
 	UNIQUE KEY `url` (`url`),
 	KEY `ix_auth_addtime` (`addtime`)) ENGINE=InnoDB DEFAULT CHARSET=utf8"""
-
-	__tablename__ = "auth"
+	
+	__table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4'
+    }
 	id = db.Column(db.Integer, primary_key=True) # 编号
 	name = db.Column(db.String(100), unique=True) # 名称
 	url = db.Column(db.String(100), unique=True) # 地址

@@ -41,14 +41,13 @@
                         </div>
                         <div class="form-group" id="auth_list">
                             <div class="col-md-12">
-                                <label>{{ form.auths.label }}</label>
+                                <label for="auths">权限列表</label>
                             </div>
-                            {{ form.auths }}
-                            {% for err in form.auths.errors %}
-                            <div class="col-md-12">
-                                <font style="color: red">{{ err }}</font>    
-                            </div>
-                            {% endfor %}
+                            <select class="form-control" id="auths" multiple="" name="auths" style="height:450px;">
+                                {% for v in auth_list %}
+                                <option value="{{ v.id }}">{{ v.name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                     <div class="box-footer">
